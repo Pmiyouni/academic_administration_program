@@ -1,0 +1,177 @@
+<학사관리프로그램>
+< MYSQL Workbench>
+ 4개의 테이블 작성  (교수(professors)/학생(students)/강좌(courses)/수강신청(enrollments),  데이터 입력, ERD작성
+(외래키)
+* 교수테이블(교수번호) pcdoe --- 학생테이블(지도교수) advisor
+* 교수테이블(교수번호)  pcode ---  강좌테이블(교수번호) instructor
+* 강좌 테이블(강좌번호) lcode --- 수강신청테이블(강좌번호) lcode
+* 학생테이블(학생번호) scode--- 수강신청테이블(학생번호) scode
+
+
+ <이클립스>
+**(1파트마다)view->controller->dao->comtroller마무리
+
+1)file->new->dynamic web project-> haksa
+*tomcat 버전 확인
+2)webapp->web-inf->lib->gson/json-simple/mysql-connector/tablibs 2개 파일
+3) header에 들어갈 이미지를 
+  webapp->image(폴더)->header.jpg 저장
+4) webapp->css->style.css  저장(구글폰트 사용)
+5) webapp->home.jsp, about.jsp, header.jsp, footer.jsp 작성
+6) home.jsp
+  ->jquery / 핸들바 / 부트스트랩(css, js) /카카오개발자센터/ twbs-pagination/스타일시트 연결
+7) header.jsp
+ -> 네비게이션 바(부트스트랩) 사용
+8) model->Database.java(sql 접속) 작성 
+9) (controller) HomeController.java
+
+10) 교수관리 ProfessorController
+10-1) 교수목록 /pro/list: getList()-$.ajax:get
+     webapp->pro 폴더->list.jsp            
+10-2) 교수목록+교수검색 /pro/list.json
+	model-> ProVO 작성
+              model->ProDAO   
+               ==>public ArrayList<ProVO> list(int page, String query, String key)
+          :pro 폴더->list.jsp-> getList()-$.ajax:get       
+10-3) 교수 수 /pro/total
+	*list.jsp: pagination사용
+       : pro 폴더->list.jsp->getTotal()-$.ajax:get        
+        model->ProDAO==> public int total(String query, String key) 
+10-4) 교수등록 /pro/insert
+          * list.jsp에서 modal 안에 indert.jsp를 include함
+          : pro 폴더->insert.jsp : $.ajax:post
+	*교수등록 버튼 클릭 후 모달창으로 실행
+	model->ProDAO==>public void insert(ProVO vo)
+10-5) 교수정보수정 /pro/update((doGet, doPost)
+	*list.jsp에서 교수이름(pname)에 링크로 교수수정으로 이동(a 태그 사용)	
+	 ***url에서 직접 값을 입력하면 doGet()
+               StudentController 에서 교수정보 read : model->ProDAO==>public ProVO read(String pcode)                후 /pro/update.jsp 이동
+
+	pro 폴더->update.jsp-> $.ajax대신 method="post" action="/pro/update"
+	 *update.jsp는 taglib 사용.   
+	교수정보수정:  model->ProDAO==>public void update(ProVO vo)
+             
+
+
+11) 학생관리 StudentController
+   
+11-1) 학생목록 /stu/list
+      /pro/list: getList()-$.ajax:get
+     webapp->pro 폴더->list.jsp
+	
+11-2) 학생목록+검색 /stu/list.json 
+	model-> StuVO 작성
+              model-> StuDAO
+                  ==>public ArrayList<StuVO> list(int page, String query, String key)
+             :stu 폴더->list.jsp-> getList()-$.ajax:get
+	
+11-3) 검색수 /stu/total
+     *list.jsp: pagination사용
+  	 : stu 폴더->list.jsp->getTotal()-$.ajax:get        
+        model->StuDAO==> public int total(String query, String key) 
+
+11-4) 학생정보수정 /stu/update(doGet,doPost)
+	*list.jsp에서 학생이름(sname)에 링크로 학생수정으로 이동
+                         (<a href="/stu/update?scode={{scode}}">
+                          ***url에서 직접 값을 입력하면 doGet()
+	 model->StuDAO==>public void update(StuVO vo) 
+              StudentsController 에서
+                            - 학생정보 read ( model->StuDAO==> public StuVO read(String scode)) 
+                            - 모든교수목록  model->ProDAO==>public ArrayList<ProVO> all()
+                           
+            Stu 폴더->update.jsp-> $.ajax대신 method="post" action="/stu/update"
+	*태그라이브러리 사용
+             - doPost에서 수행-- 학생정보수정 /stu/update ( StuDAO==> update) 
+              ***  jsp에서 Post 로 지정해서 보내면 doPost()가 호출
+
+11-5) 학생등록 /stu/insert
+	* list.jsp에서 modal 안에 indert.jsp를 include함
+             * 학생등록 버튼 누르면 모달창 보여줌
+ 	 : stu 폴더->insert.jsp : $.ajax대신 method="post" action="/stu/insert"
+	   model->StuDAO==> public void insert(StuVO vo)
+
+11-6) 수강신청 /stu/enroll
+	model-> CouVO 작성            
+             :stu 폴더->enroll.jsp-> getL
+	*list.jsp에서 수강신청 버튼에 링크로 강좌신청으로 이동
+                         (<a href="/stu/enroll?scode={{scode}}">)	
+               ***url에서 직접 값을 입력하면 doGet()
+                            StudentsController 에서
+                            -강좌목록읽기 ( model->CouDAO==> public ArrayList<CouVO> all()
+                            - 학생정보 read ( model->StuDAO==> public StuVO read(String scode)) 
+                            -수강신청으로  /stu/enroll.jsp            
+
+11-7)  수강신청목록+검색  /stu/enroll.json
+	model-> EnrollVO 작성            
+             :stu 폴더->enroll.jsp-> getList()-$.ajax:get   url:/stu/enroll.json
+	   수강신청목록:model->StuDAO==>public ArrayList<EnrollVO> list(String scode)
+
+11-8) 강좌 목록 /cou/all.json
+	 :stu 폴더->enroll.jsp->getCou()-$.ajax:get   url:/cou/all.json
+               CourseController 에서 /cou/all.json->강좌목록 배열 저장
+	 강좌목록 읽기:model->CouDAO==> public ArrayList<CouVO> all() 
+
+11-9) 수강신청 등록  /enroll/insert
+               :stu 폴더->enroll.jsp->수강신청버튼r->-$.ajax:get   url:/enroll/insert
+	 StudentsController 에서 /enroll/insert 수행
+	model->StuDAO==>public int insert(String scode, String lcode)
+                   ***mysql에서 stored procedure(add_enrol) 작성 후 이용 
+
+11-10) 수강신청취소  /enroll/delete 
+	  :stu 폴더->enroll.jsp-> 수강취소버튼->-$.ajax:post   url:/enroll/delete
+              StudentsController 에서 /enroll/delete 수행
+	model->StuDAO==> public void delete(String scode, String lcode)
+		***mysql에서 stored procedure(del_enrol) 작성 후 이용 
+
+
+
+12) 강좌관리  CourseComtroller
+12-1) 강좌목록 /cou/list
+	CoursesController에서 
+            - 모든교수목록  model->ProDAO==>public ArrayList<ProVO> all()
+	-강좌목록으로 이동(/cou/list) 
+
+12-2) 강좌목록+검색 /cou/list.json
+	CoursesController에서  Gson으로 반복문없이 json으로 변환	         
+             :cou 폴더->list.jsp-> getList()-$.ajax:get   url:/cou/list.json
+	model-> EnrollVO 작성   
+	model-> CouDao->public ArrayList<CouVO> list(int page, String key, String query)
+	 
+12-3) 검색강좌수 /cou/total
+             :cou 폴더->list.jsp-> getTotal()-$.ajax:get   url:/cou/total (페이지네이션)  	     
+	model->CouDAO==>public int total(String key, String query)
+
+12-4) 강좌등록  /cou/insert
+         Cou폴더->list.jsp에서 강좌등록 버튼 클릭하면->모달창이 띄어짐
+        * list.jsp에서 modal 안에 indert.jsp를 include함
+          : cou 폴더->insert.jsp : $.ajax대신 method="post" action="/cou/insert"
+         model->CouDAO==>1) public String getCode() :강좌번호구하기(자동으로 +1)
+                                       2) public void insert(CouVO vo) 
+
+12-5) 강좌정보수정 /cou/update(doGet,doPost)
+          Cou폴더->list.jsp에서 강좌목록 원하는 줄을 클릭하면 그 줄의 강좌코드를 가지고
+            /cou/update로 이동 
+             ***url에서 직접 값을 입력하면 doGet()
+           CoursesController에서  
+ 	-해당강좌정보읽기( model->CouDAO==> public CouVO read(String lcode)
+              -강좌목록읽기 ( model->CouDAO==> public ArrayList<CouVO> all()
+             -강좌정보수정 /cou/update로 이동
+
+               Cou폴더->update.jsp에서 $.ajax대신 method="post" action="/cou/update"
+ 	*태그라이브러리 사용
+             - doPost에서 수행-- 강좌수정( StuDAO==> public void update(CouVO vo)) 
+              ***  jsp에서 Post 로 지정해서 보내면 doPost()가 호출
+             
+12-6) 점수목록 /cou/grade
+           -  model-> GradeVO 작성   
+          - cou 폴더-list.jsp에 점수입력 버튼 클릭하면  /.cou/grade로 이동(doGet)
+          -강좌번호 가지고 해당강좌정보읽기( model->CouDAO==> public CouVO read(String lcode)
+           -강좌목록으로 이동 /cou/grade.jsp
+
+12-7) 점수목록 + 검색  /cou/grade.json
+             -해당점수목록수행( model->CouDAO==> public ArrayList<GradeVO> list(String lcode))
+             -cou 폴더->grade.jsp-> $.ajax:get  /cou/grade.json
+
+12-8) 점수 수정  /grade/update
+	cou 폴더->grade.jsp->수정 버튼을 클릭하면 $.ajax: post  /grade/update
+             model->CouDAO==> public void update(GradeVO vo)
